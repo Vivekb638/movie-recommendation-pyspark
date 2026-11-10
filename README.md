@@ -65,7 +65,6 @@ The system consists of:
 - Cloud-based model and data storage
 
 ## Project Structure
-
 ```text
 movie-recommendation-pyspark/
 ├── README.md
