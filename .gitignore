@@ -218,3 +218,38 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+
+# CineMatch project-specific exclusions
+
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
+.streamlit/secrets.toml
+
+# Python environments
+.venv/
+venv/
+ENV/
+
+# MovieLens datasets
+data/
+graphx/data/
+
+# Generated GraphX output
+graphx/results/communities/
+graphx/results/movie_pagerank/
+graphx/results/vertex_degrees/
+
+# Backend model artifacts (large generated files)
+backend/artifacts/
+
+# Spark temporary files
+.sparkStaging/
+metastore_db/
+derby.log
+
+# Scala/SBT generated files
+graphx/target/
+graphx/project/target/
