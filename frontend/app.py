@@ -1,4 +1,6 @@
 
+import os
+import uuid
 import base64
 import textwrap
 from pathlib import Path
@@ -22,18 +24,65 @@ st.set_page_config(
 BASE_DIR = Path(__file__).resolve().parent
 BACKGROUND_PATH = BASE_DIR / "assets" / "background.jpg"
 
+GENRES = [
+    "Action", "Adventure", "Animation", "Children's",
+    "Comedy", "Crime", "Documentary", "Drama",
+    "Fantasy", "Film-Noir", "Horror", "Musical",
+    "Mystery", "Romance", "Sci-Fi", "Thriller",
+    "War", "Western"
+]
+
 
 # ============================================================
-# 2. HTML RENDERING HELPER
+# 2. BACKEND CONFIGURATION
+# ============================================================
+
+def get_api_url():
+
+    value = os.getenv("API_URL", "").strip()
+
+    if not value:
+        try:
+            value = st.secrets.get("API_URL", "")
+        except Exception:
+            value = ""
+
+    return str(value).strip().rstrip("/")
+
+
+API_URL = get_api_url()
+
+
+# ============================================================
+# 3. ANONYMOUS VISITOR ID
+# ============================================================
+
+def get_anonymous_id():
+
+    visitor_id = st.query_params.get("cinematch_id", "")
+
+    if not visitor_id or len(visitor_id) < 8:
+
+        visitor_id = uuid.uuid4().hex
+
+        st.query_params["cinematch_id"] = visitor_id
+
+    return visitor_id
+
+
+ANONYMOUS_ID = get_anonymous_id()
+
+
+# ============================================================
+# 4. HTML RENDERING
 # ============================================================
 
 def render_html(content):
-    """Render HTML without accidental Markdown code formatting."""
     st.html(textwrap.dedent(content))
 
 
 # ============================================================
-# 3. BACKGROUND IMAGE
+# 5. BACKGROUND IMAGE
 # ============================================================
 
 def load_background():
@@ -42,6 +91,7 @@ def load_background():
         return None
 
     try:
+
         image_data = base64.b64encode(
             BACKGROUND_PATH.read_bytes()
         ).decode("utf-8")
@@ -49,6 +99,7 @@ def load_background():
         return f"data:image/jpeg;base64,{image_data}"
 
     except OSError:
+
         return None
 
 
@@ -59,8 +110,8 @@ if background_image:
     background_css = f"""
     background-image:
         linear-gradient(
-            rgba(5, 15, 27, 0.65),
-            rgba(8, 19, 33, 0.88)
+            rgba(5, 15, 27, 0.68),
+            rgba(8, 19, 33, 0.91)
         ),
         url("{background_image}");
     background-size: cover;
@@ -86,7 +137,7 @@ else:
 
 
 # ============================================================
-# 4. PREMIUM NAVY AND GOLD CSS
+# 6. CINEMATIC NAVY AND GOLD CSS
 # ============================================================
 
 css = """
@@ -146,8 +197,8 @@ html, body, [class*="css"] {
     text-align: center;
     background: linear-gradient(
         135deg,
-        rgba(8, 19, 33, 0.91),
-        rgba(20, 43, 64, 0.82)
+        rgba(8, 19, 33, 0.94),
+        rgba(20, 43, 64, 0.86)
     );
     border: 1px solid rgba(217, 164, 65, 0.55);
     border-radius: 24px;
@@ -183,24 +234,17 @@ html, body, [class*="css"] {
 /* FEATURE CARDS */
 
 .feature {
-    background: rgba(13, 29, 47, 0.93);
+    background: rgba(13, 29, 47, 0.94);
     border: 1px solid rgba(217, 164, 65, 0.32);
     border-radius: 18px;
     padding: 24px;
     min-height: 150px;
     backdrop-filter: blur(12px);
-    transition: 0.2s ease;
-}
-
-.feature:hover {
-    border-color: #D9A441;
-    transform: translateY(-3px);
 }
 
 .feature h3 {
     color: #E9BC62;
     font-size: 18px;
-    margin-bottom: 10px;
 }
 
 .feature p {
@@ -208,23 +252,20 @@ html, body, [class*="css"] {
     font-size: 14px;
 }
 
-/* SECTION HEADINGS */
+/* SECTIONS */
 
 .section-heading {
     color: #F4E8D0;
     font-size: 27px;
     font-weight: 750;
-    margin: 28px 0 16px 0;
+    margin: 28px 0 16px;
 }
-
-/* CONTENT PANELS */
 
 .glass {
     background: rgba(10, 25, 42, 0.94);
     border: 1px solid rgba(217, 164, 65, 0.4);
     border-radius: 20px;
     padding: 25px;
-    backdrop-filter: blur(12px);
 }
 
 .info {
@@ -255,7 +296,7 @@ label {
     width: 100%;
     border: 1px solid #E5BD69;
     border-radius: 12px;
-    padding: 12px 18px;
+    padding: 10px 14px;
     font-weight: 700;
     color: #081321;
     background: linear-gradient(
@@ -269,8 +310,59 @@ label {
 .stButton > button:hover {
     color: #081321;
     border-color: #FFFFFF;
-    box-shadow: 0 0 20px rgba(217, 164, 65, 0.4);
-    transform: translateY(-2px);
+    box-shadow: none !important;
+}
+
+/* NAVIGATION - CLEAN HOVER, NO STATIC SHADOW */
+
+.st-key-top_navigation {
+    position: relative !important;
+    z-index: 2 !important;
+    overflow: visible !important;
+    pointer-events: auto !important;
+}
+
+.st-key-top_navigation .stButton,
+.st-key-top_navigation .stButton > button {
+    position: relative !important;
+    z-index: 3 !important;
+    pointer-events: auto !important;
+}
+
+.st-key-top_navigation .stButton > button {
+    width: 100%;
+    min-height: 44px;
+    white-space: nowrap;
+    background: rgba(20, 43, 64, 0.95) !important;
+    color: #F4E8D0 !important;
+    border: 1px solid rgba(217, 164, 65, 0.55) !important;
+    border-radius: 12px !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+    transform: none !important;
+    transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease !important;
+    cursor: pointer !important;
+}
+
+.st-key-top_navigation .stButton > button:hover {
+    background: #D9A441 !important;
+    color: #081321 !important;
+    border-color: #F5D995 !important;
+    box-shadow: none !important;
+    transform: none !important;
+}
+
+.st-key-top_navigation .stButton > button:focus,
+.st-key-top_navigation .stButton > button:focus-visible {
+    outline: 2px solid #E9BC62 !important;
+    outline-offset: 2px !important;
+    box-shadow: none !important;
+}
+
+.st-key-top_navigation .stButton > button:active {
+    background: #C99535 !important;
+    color: #081321 !important;
+    box-shadow: none !important;
 }
 
 /* METRICS */
@@ -314,8 +406,6 @@ label {
     color: #E9BC62;
 }
 
-/* DIVIDERS */
-
 hr {
     border-color: rgba(217, 164, 65, 0.3);
 }
@@ -323,79 +413,468 @@ hr {
 </style>
 """
 
-css = css.replace(
-    "BACKGROUND_PLACEHOLDER",
-    background_css
+st.html(
+    css.replace(
+        "BACKGROUND_PLACEHOLDER",
+        background_css
+    )
 )
 
-st.html(css)
+
+# ============================================================
+# 7. SESSION STATE
+# ============================================================
+
+defaults = {
+    "page": "Home",
+    "recommendations": None,
+    "recommendation_type": "New User",
+    "last_request": None,
+    "watchlist": [],
+    "feedback": {}
+}
+
+for key, value in defaults.items():
+
+    if key not in st.session_state:
+        st.session_state[key] = value
 
 
 # ============================================================
-# 5. SESSION STATE
+# 8. SAFE FASTAPI REQUEST HELPER
 # ============================================================
 
-if "page" not in st.session_state:
-    st.session_state.page = "Home"
+def api_request(method, endpoint, **kwargs):
+    """Send a request to FastAPI and safely parse its response."""
 
-if "recommendations" not in st.session_state:
-    st.session_state.recommendations = None
+    if not API_URL:
 
-if "api_url" not in st.session_state:
-    st.session_state.api_url = "http://localhost:8000"
+        raise RuntimeError(
+            "Backend URL is not configured. "
+            "Please configure API_URL."
+        )
 
-if "recommendation_type" not in st.session_state:
-    st.session_state.recommendation_type = "New User"
+    url = f"{API_URL}{endpoint}"
+
+    try:
+
+        response = requests.request(
+            method,
+            url,
+            timeout=30,
+            headers={
+                "Accept": "application/json"
+            },
+            **kwargs
+        )
+
+        content_type = response.headers.get(
+            "Content-Type", ""
+        ).lower()
+
+        if not response.ok:
+
+            try:
+
+                detail = response.json().get(
+                    "detail",
+                    response.text[:500]
+                )
+
+            except ValueError:
+
+                detail = response.text[:500]
+
+            raise RuntimeError(
+                f"Backend HTTP {response.status_code}: {detail}"
+            )
+
+        if "application/json" not in content_type:
+
+            raise RuntimeError(
+                "FastAPI returned a non-JSON response. "
+                f"Content-Type: {content_type or 'unknown'}. "
+                "Check port 8000 and the API_URL configuration."
+            )
+
+        try:
+
+            result = response.json()
+
+        except ValueError:
+
+            raise RuntimeError(
+                "FastAPI returned invalid JSON: "
+                + response.text[:500]
+            )
+
+        if not isinstance(result, dict):
+
+            raise RuntimeError(
+                "Unexpected response format from FastAPI."
+            )
+
+        return result
+
+    except requests.exceptions.Timeout:
+
+        raise RuntimeError(
+            "Backend request timed out. Please try again."
+        )
+
+    except requests.exceptions.ConnectionError:
+
+        raise RuntimeError(
+            "Cannot connect to FastAPI. "
+            "Check that the backend server is running."
+        )
 
 
 # ============================================================
-# 6. TOP NAVIGATION
+# 9. WATCHLIST API HELPERS
 # ============================================================
 
-logo, navigation = st.columns([1.3, 3])
+def refresh_watchlist():
 
-with logo:
-
-    render_html(
-        """
-        <div class="brand">
-            🎬 Cine<span>Match</span>
-        </div>
-        <div class="brand-caption">
-            PERSONALIZED MOVIE DISCOVERY
-        </div>
-        """
+    result = api_request(
+        "GET",
+        f"/watchlist/{ANONYMOUS_ID}"
     )
 
-with navigation:
+    st.session_state.watchlist = result.get(
+        "watchlist",
+        []
+    )
 
-    nav1, nav2, nav3, nav4 = st.columns(4)
+    return st.session_state.watchlist
 
-    navigation_items = [
-        ("Home", nav1),
-        ("Discover Movies", nav2),
-        ("My Recommendations", nav3),
-        ("About Project", nav4)
-    ]
 
-    for page_name, column in navigation_items:
+def add_movie(movie):
 
-        with column:
+    result = api_request(
+        "POST",
+        "/watchlist",
+        json={
+            "anonymous_id": ANONYMOUS_ID,
+            "movie": movie
+        }
+    )
 
-            if st.button(
-                page_name,
-                key=f"navigation_{page_name}"
-            ):
+    st.session_state.watchlist = result.get(
+        "watchlist",
+        []
+    )
 
-                st.session_state.page = page_name
-                st.rerun()
+
+def remove_movie(movie_id):
+
+    result = api_request(
+        "DELETE",
+        f"/watchlist/{ANONYMOUS_ID}/{int(movie_id)}"
+    )
+
+    st.session_state.watchlist = result.get(
+        "watchlist",
+        []
+    )
+
+
+# ============================================================
+# 10. FEEDBACK API HELPERS
+# ============================================================
+
+def refresh_feedback():
+
+    result = api_request(
+        "GET",
+        f"/feedback/{ANONYMOUS_ID}"
+    )
+
+    st.session_state.feedback = {
+        str(item["movieId"]): item["feedback"]
+        for item in result.get("feedback", [])
+    }
+
+
+def send_feedback(movie_id, feedback):
+
+    result = api_request(
+        "PUT",
+        f"/feedback/{ANONYMOUS_ID}/{int(movie_id)}",
+        json={
+            "anonymous_id": ANONYMOUS_ID,
+            "feedback": feedback
+        }
+    )
+
+    st.session_state.feedback = {
+        str(item["movieId"]): item["feedback"]
+        for item in result.get("feedback", [])
+    }
+
+
+def remove_feedback(movie_id):
+
+    result = api_request(
+        "DELETE",
+        f"/feedback/{ANONYMOUS_ID}/{int(movie_id)}"
+    )
+
+    st.session_state.feedback = {
+        str(item["movieId"]): item["feedback"]
+        for item in result.get("feedback", [])
+    }
+
+
+# ============================================================
+# 11. RECOMMENDATION HELPER
+# ============================================================
+
+def generate_recommendations(payload):
+
+    result = api_request(
+        "POST",
+        "/recommend",
+        json=payload
+    )
+
+    st.session_state.recommendations = result.get(
+        "recommendations",
+        []
+    )
+
+    st.session_state.last_request = payload
+
+    st.session_state.page = "My Recommendations"
+
+
+# ============================================================
+# 12. TOP NAVIGATION
+# ============================================================
+
+with st.container(key="top_navigation"):
+
+    logo, navigation = st.columns([1.25, 4])
+
+    with logo:
+
+        render_html(
+            """
+            <div class="brand">
+                🎬 Cine<span>Match</span>
+            </div>
+            <div class="brand-caption">
+                PERSONALIZED MOVIE DISCOVERY
+            </div>
+            """
+        )
+
+    with navigation:
+
+        nav_columns = st.columns(5)
+
+        pages = [
+            ("Home", nav_columns[0]),
+            ("Discover", nav_columns[1]),
+            ("Recommendations", nav_columns[2]),
+            ("Watchlist", nav_columns[3]),
+            ("About", nav_columns[4])
+        ]
+
+        page_mapping = {
+            "Home": "Home",
+            "Discover": "Discover Movies",
+            "Recommendations": "My Recommendations",
+            "Watchlist": "My Watchlist",
+            "About": "About Project"
+        }
+
+        for page_name, column in pages:
+
+            with column:
+
+                if st.button(
+                    page_name,
+                    key=f"nav_{page_name}",
+                    use_container_width=True
+                ):
+
+                    st.session_state.page = page_mapping[page_name]
+                    st.rerun()
 
 
 st.divider()
 
 
 # ============================================================
-# 7. HOME PAGE
+# 15. MOVIE DISPLAY COMPONENT
+# ============================================================
+
+def display_movie(movie, index, location):
+
+    movie_id = int(movie["movieId"])
+
+    title = str(
+        movie.get("title", "Untitled movie")
+    )
+
+    genres = str(
+        movie.get("genres", "Not specified")
+    )
+
+    avg_rating = movie.get("avg_rating")
+    predicted = movie.get("predicted_rating")
+    hybrid = movie.get("hybrid_score")
+
+    saved_ids = {
+        int(item["movieId"])
+        for item in st.session_state.watchlist
+    }
+
+    current_feedback = st.session_state.feedback.get(
+        str(movie_id)
+    )
+
+    with st.container(border=True):
+
+        st.markdown(f"### {index}. {title}")
+
+        st.caption(f"Genres: {genres}")
+
+        col1, col2, col3 = st.columns(3)
+
+        if avg_rating is not None:
+
+            col1.metric(
+                "Average Rating",
+                f"{float(avg_rating):.2f}/5"
+            )
+
+        if predicted is not None:
+
+            col2.metric(
+                "ALS Prediction",
+                f"{float(predicted):.2f}"
+            )
+
+        if hybrid is not None:
+
+            col3.metric(
+                "Hybrid Score",
+                f"{float(hybrid):.3f}"
+            )
+
+        button1, button2, button3 = st.columns(3)
+
+        # WATCHLIST BUTTON
+        with button1:
+
+            if movie_id in saved_ids:
+
+                if st.button(
+                    "✓ Saved",
+                    key=f"{location}_saved_{movie_id}"
+                ):
+
+                    try:
+
+                        remove_movie(movie_id)
+
+                        st.toast(
+                            "Movie removed from watchlist."
+                        )
+
+                        st.rerun()
+
+                    except RuntimeError as error:
+
+                        st.error(str(error))
+
+            else:
+
+                if st.button(
+                    "＋ Watchlist",
+                    key=f"{location}_save_{movie_id}"
+                ):
+
+                    try:
+
+                        add_movie(movie)
+
+                        st.toast(
+                            "Movie added to watchlist."
+                        )
+
+                        st.rerun()
+
+                    except RuntimeError as error:
+
+                        st.error(str(error))
+
+        # LIKE BUTTON
+        with button2:
+
+            label = (
+                "♥ Liked"
+                if current_feedback == "like"
+                else "♥ Like"
+            )
+
+            if st.button(
+                label,
+                key=f"{location}_like_{movie_id}"
+            ):
+
+                try:
+
+                    if current_feedback == "like":
+
+                        remove_feedback(movie_id)
+
+                    else:
+
+                        send_feedback(movie_id, "like")
+
+                    st.rerun()
+
+                except RuntimeError as error:
+
+                    st.error(str(error))
+
+        # DISLIKE BUTTON
+        with button3:
+
+            label = (
+                "Disliked"
+                if current_feedback == "dislike"
+                else "Dislike"
+            )
+
+            if st.button(
+                label,
+                key=f"{location}_dislike_{movie_id}"
+            ):
+
+                try:
+
+                    if current_feedback == "dislike":
+
+                        remove_feedback(movie_id)
+
+                    else:
+
+                        send_feedback(movie_id, "dislike")
+
+                    st.rerun()
+
+                except RuntimeError as error:
+
+                    st.error(str(error))
+
+
+
+# ============================================================
+# 13. HOME PAGE
 # ============================================================
 
 if st.session_state.page == "Home":
@@ -409,7 +888,6 @@ if st.session_state.page == "Home":
                     Favorite Movie.
                 </span>
             </h1>
-
             <p>
                 Intelligent recommendations.
                 Your preferences. Endless entertainment.
@@ -420,47 +898,33 @@ if st.session_state.page == "Home":
 
     c1, c2, c3 = st.columns(3)
 
-    with c1:
-
-        render_html(
-            """
-            <div class="feature">
-                <h3>👤 Personalized Discovery</h3>
-                <p>
-                    Find movies using collaborative filtering
-                    powered by Spark MLlib ALS.
-                </p>
-            </div>
-            """
+    feature_data = [
+        (
+            "👤 Personalized Discovery",
+            "Find movies using collaborative filtering powered by Spark MLlib ALS."
+        ),
+        (
+            "🔗 Graph Intelligence",
+            "Explore user-movie relationships using Apache Spark GraphX."
+        ),
+        (
+            "✨ Smart Recommendations",
+            "Discover films using ratings, genres and recommendation signals."
         )
+    ]
 
-    with c2:
+    for column, item in zip([c1, c2, c3], feature_data):
 
-        render_html(
-            """
-            <div class="feature">
-                <h3>🔗 Graph Intelligence</h3>
-                <p>
-                    Explore user-movie relationships
-                    using Apache Spark GraphX.
-                </p>
-            </div>
-            """
-        )
+        with column:
 
-    with c3:
-
-        render_html(
-            """
-            <div class="feature">
-                <h3>✨ Smart Recommendations</h3>
-                <p>
-                    Discover films using movie ratings,
-                    genres and recommendation signals.
-                </p>
-            </div>
-            """
-        )
+            render_html(
+                f"""
+                <div class="feature">
+                    <h3>{item[0]}</h3>
+                    <p>{item[1]}</p>
+                </div>
+                """
+            )
 
     render_html(
         """
@@ -472,29 +936,22 @@ if st.session_state.page == "Home":
             <h3 style="color:#E9BC62;">
                 🍿 Find Something Amazing to Watch
             </h3>
-
             <p class="info">
-                Choose your favorite movie genres, select your
-                recommendation type, and let CineMatch find
-                movies that match your interests.
+                Discover personalized movies, save your favorites
+                and share your feedback.
             </p>
         </div>
         """
     )
 
-    st.write("")
-
-    if st.button(
-        "Explore Movies →",
-        key="home_explore"
-    ):
+    if st.button("Explore Movies →"):
 
         st.session_state.page = "Discover Movies"
         st.rerun()
 
 
 # ============================================================
-# 8. DISCOVER MOVIES PAGE
+# 14. DISCOVER MOVIES PAGE
 # ============================================================
 
 elif st.session_state.page == "Discover Movies":
@@ -512,173 +969,109 @@ elif st.session_state.page == "Discover Movies":
         """
     )
 
-    with st.container(border=True):
+    if not API_URL:
 
-        st.subheader("1. Backend Connection")
-
-        api_url = st.text_input(
-            "FastAPI Backend URL",
-            value=st.session_state.api_url,
-            placeholder="https://your-api-url"
+        st.error(
+            "Backend URL is not configured. "
+            "Configure API_URL before starting Streamlit."
         )
 
-        st.session_state.api_url = api_url.strip().rstrip("/")
+    else:
 
-        st.divider()
+        with st.container(border=True):
 
-        st.subheader("2. Recommendation Type")
+            st.subheader("1. Recommendation Type")
 
-        user_type = st.radio(
-            "Choose your profile",
-            ["New User", "Existing User"],
-            horizontal=True,
-            index=(
-                0
-                if st.session_state.recommendation_type == "New User"
-                else 1
-            )
-        )
-
-        st.session_state.recommendation_type = user_type
-
-        user_id = None
-
-        if user_type == "Existing User":
-
-            user_id = st.number_input(
-                "MovieLens User ID",
-                min_value=1,
-                max_value=6040,
-                value=1,
-                step=1
+            user_type = st.radio(
+                "Choose your profile",
+                ["New User", "Existing User"],
+                horizontal=True,
+                index=(
+                    0
+                    if st.session_state.recommendation_type == "New User"
+                    else 1
+                )
             )
 
-        st.divider()
+            st.session_state.recommendation_type = user_type
 
-        st.subheader("3. Select Your Favorite Genres")
+            user_id = None
 
-        available_genres = [
-            "Action",
-            "Adventure",
-            "Animation",
-            "Children's",
-            "Comedy",
-            "Crime",
-            "Documentary",
-            "Drama",
-            "Fantasy",
-            "Film-Noir",
-            "Horror",
-            "Musical",
-            "Mystery",
-            "Romance",
-            "Sci-Fi",
-            "Thriller",
-            "War",
-            "Western"
-        ]
+            if user_type == "Existing User":
 
-        preferred_genres = st.multiselect(
-            "Choose one or more genres",
-            available_genres,
-            default=["Action", "Adventure", "Comedy"]
-        )
-
-        st.divider()
-
-        st.subheader("4. Recommendation Quantity")
-
-        top_n = st.slider(
-            "Number of movies",
-            min_value=5,
-            max_value=20,
-            value=10
-        )
-
-        st.write("")
-
-        if st.button(
-            "✨ Generate My Recommendations",
-            type="primary",
-            key="generate_recommendations"
-        ):
-
-            if user_type == "New User" and not preferred_genres:
-
-                st.warning(
-                    "Please select at least one genre."
+                user_id = st.number_input(
+                    "MovieLens User ID",
+                    min_value=1,
+                    max_value=6040,
+                    value=1,
+                    step=1
                 )
 
-            elif not st.session_state.api_url:
+            st.divider()
 
-                st.warning(
-                    "Please enter your FastAPI URL."
-                )
+            st.subheader("2. Select Your Favorite Genres")
 
-            else:
+            preferred_genres = st.multiselect(
+                "Choose one or more genres",
+                GENRES,
+                default=["Action", "Adventure", "Comedy"]
+            )
 
-                payload = {
-                    "user_id": (
-                        int(user_id)
-                        if user_type == "Existing User"
-                        else None
-                    ),
-                    "preferred_genres": preferred_genres,
-                    "top_n": int(top_n)
-                }
+            st.divider()
 
-                try:
+            st.subheader("3. Recommendation Quantity")
 
-                    with st.spinner(
-                        "🎬 Finding movies you'll love..."
-                    ):
+            top_n = st.slider(
+                "Number of movies",
+                min_value=5,
+                max_value=20,
+                value=10
+            )
 
-                        response = requests.post(
-                            f"{st.session_state.api_url}/recommend",
-                            json=payload,
-                            timeout=90
-                        )
+            if st.button(
+                "✨ Generate My Recommendations",
+                type="primary"
+            ):
 
-                    if response.status_code == 200:
+                if user_type == "New User" and not preferred_genres:
 
-                        st.session_state.recommendations = (
-                            response.json().get(
-                                "recommendations",
-                                []
-                            )
-                        )
+                    st.warning(
+                        "Please select at least one genre."
+                    )
+
+                else:
+
+                    payload = {
+                        "user_id": (
+                            int(user_id)
+                            if user_type == "Existing User"
+                            else None
+                        ),
+                        "preferred_genres": preferred_genres,
+                        "top_n": int(top_n)
+                    }
+
+                    try:
+
+                        with st.spinner(
+                            "🎬 Finding movies you'll love..."
+                        ):
+
+                            generate_recommendations(payload)
 
                         st.success(
-                            "Your movie recommendations are ready!"
+                            "Your recommendations are ready!"
                         )
 
-                        st.session_state.page = "My Recommendations"
                         st.rerun()
 
-                    else:
+                    except RuntimeError as error:
 
-                        st.error(
-                            f"API Error: {response.status_code}"
-                        )
-
-                        st.code(response.text)
-
-                except requests.exceptions.RequestException as error:
-
-                    st.error(
-                        "Could not connect to the FastAPI backend."
-                    )
-
-                    st.info(
-                        "Check whether your backend server is running "
-                        "and verify the forwarded port URL."
-                    )
-
-                    st.code(str(error))
+                        st.error(str(error))
 
 
 # ============================================================
-# 9. MY RECOMMENDATIONS PAGE
+# 16. MY RECOMMENDATIONS PAGE
 # ============================================================
 
 elif st.session_state.page == "My Recommendations":
@@ -714,86 +1107,95 @@ elif st.session_state.page == "My Recommendations":
 
     else:
 
+        try:
+
+            refresh_watchlist()
+            refresh_feedback()
+
+        except RuntimeError as error:
+
+            st.warning(str(error))
+
         df = pd.DataFrame(recommendations)
 
         metric1, metric2, metric3 = st.columns(3)
 
-        with metric1:
+        metric1.metric(
+            "Movies Recommended",
+            len(df)
+        )
 
-            st.metric(
-                "Movies Recommended",
-                len(df)
+        if "avg_rating" in df.columns:
+
+            average_rating = pd.to_numeric(
+                df["avg_rating"],
+                errors="coerce"
+            ).mean()
+
+            metric2.metric(
+                "Average Movie Rating",
+                (
+                    f"{average_rating:.2f}/5"
+                    if pd.notna(average_rating)
+                    else "N/A"
+                )
             )
 
-        with metric2:
+        else:
 
-            if "avg_rating" in df.columns:
+            metric2.metric(
+                "Average Movie Rating",
+                "N/A"
+            )
 
-                average_rating = pd.to_numeric(
-                    df["avg_rating"],
-                    errors="coerce"
-                ).mean()
-
-                st.metric(
-                    "Average Movie Rating",
-                    (
-                        f"{average_rating:.2f}/5"
-                        if pd.notna(average_rating)
-                        else "N/A"
-                    )
-                )
-
-            else:
-
-                st.metric(
-                    "Average Movie Rating",
-                    "N/A"
-                )
-
-        with metric3:
-
-            st.metric(
-                "Recommendation Engine",
+        metric3.metric(
+            "Recommendation Engine",
+            (
                 "Spark ALS"
+                if "predicted_rating" in df.columns
+                else "Hybrid Ranking"
             )
+        )
 
         st.divider()
 
-        st.subheader("🍿 Recommended Movies")
+        search = st.text_input(
+            "Search recommended movies",
+            placeholder="Enter a movie title..."
+        )
 
-        preferred_columns = [
-            "title",
-            "genres",
-            "avg_rating",
-            "hybrid_score",
-            "predicted_rating",
-            "als_predicted_rating"
-        ]
+        filtered = df.copy()
 
-        display_columns = [
-            column
-            for column in preferred_columns
-            if column in df.columns
-        ]
+        if search:
 
-        display_df = df[display_columns].copy()
+            filtered = filtered[
+                filtered["title"].str.contains(
+                    search,
+                    case=False,
+                    na=False
+                )
+            ]
 
-        for column in [
-            "avg_rating",
-            "hybrid_score",
-            "predicted_rating",
-            "als_predicted_rating"
-        ]:
+        if filtered.empty:
 
-            if column in display_df.columns:
+            st.info("No matching movies found.")
 
-                display_df[column] = pd.to_numeric(
-                    display_df[column],
-                    errors="coerce"
-                ).round(3)
+        else:
 
-        # Static table: avoids the interactive DataFrame component.
-        st.table(display_df)
+            st.subheader("🍿 Recommended Movies")
+
+            for index, movie in enumerate(
+                filtered.to_dict("records"),
+                start=1
+            ):
+
+                display_movie(
+                    movie,
+                    index,
+                    "recommendation"
+                )
+
+        st.divider()
 
         st.download_button(
             "⬇️ Download Movie Recommendations",
@@ -802,8 +1204,6 @@ elif st.session_state.page == "My Recommendations":
             mime="text/csv"
         )
 
-        st.write("")
-
         if st.button("Find More Movies"):
 
             st.session_state.page = "Discover Movies"
@@ -811,7 +1211,72 @@ elif st.session_state.page == "My Recommendations":
 
 
 # ============================================================
-# 10. ABOUT PROJECT PAGE
+# 17. MY WATCHLIST PAGE
+# ============================================================
+
+elif st.session_state.page == "My Watchlist":
+
+    render_html(
+        """
+        <div class="section-heading">
+            ⭐ My Watchlist
+        </div>
+
+        <p class="info">
+            Your saved movies are stored in CineMatch.
+            They remain available when you refresh this browser
+            using the same anonymous visitor link.
+        </p>
+        """
+    )
+
+    try:
+
+        watchlist = refresh_watchlist()
+        refresh_feedback()
+
+        st.metric(
+            "Saved Movies",
+            len(watchlist)
+        )
+
+        if not watchlist:
+
+            st.info(
+                "Your watchlist is empty. "
+                "Discover movies and save your favorites."
+            )
+
+            if st.button("Discover Movies →"):
+
+                st.session_state.page = "Discover Movies"
+                st.rerun()
+
+        else:
+
+            for index, movie in enumerate(
+                watchlist,
+                start=1
+            ):
+
+                display_movie(
+                    movie,
+                    index,
+                    "watchlist"
+                )
+
+    except RuntimeError as error:
+
+        st.error(str(error))
+
+        st.info(
+            "Check that FastAPI is running on port 8000 "
+            "and that API_URL is correct."
+        )
+
+
+# ============================================================
+# 18. ABOUT PROJECT PAGE
 # ============================================================
 
 elif st.session_state.page == "About Project":
@@ -849,6 +1314,7 @@ elif st.session_state.page == "About Project":
         ("Spark GraphX", "User-movie graph analysis"),
         ("FastAPI", "Recommendation backend"),
         ("Streamlit", "Interactive frontend"),
+        ("SQLite", "Persistent anonymous watchlists and feedback"),
         ("MovieLens 1M", "Movie ratings dataset")
     ]
 
@@ -879,11 +1345,15 @@ Recommendation Engine
         v
 FastAPI Backend
         |
+        +------> SQLite Watchlist
+        |
+        +------> Movie Feedback
+        |
         v
 Streamlit Frontend
         |
         v
-Movie Recommendations
+Personalized Movie Discovery
         """,
         language="text"
     )
@@ -895,13 +1365,13 @@ Movie Recommendations
     st.write(
         "The MovieLens 1M dataset contains movie ratings, "
         "movie information and user information. "
-        "It is used for data processing, exploratory analysis, "
+        "It supports data preprocessing, exploratory analysis, "
         "model training and recommendation evaluation."
     )
 
 
 # ============================================================
-# 11. FOOTER
+# 19. FOOTER
 # ============================================================
 
 render_html(

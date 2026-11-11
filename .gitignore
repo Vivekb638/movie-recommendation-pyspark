@@ -253,3 +253,7 @@ derby.log
 # Scala/SBT generated files
 graphx/target/
 graphx/project/target/
+
+backend/data/
+backend/artifacts/
+graphx/sbt
